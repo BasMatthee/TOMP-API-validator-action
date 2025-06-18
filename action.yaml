@@ -1,0 +1,99 @@
+name: "Validate OpenAPI spec against TOMP-API"
+description: "Compare a candidate OpenAPI spec against the TOMP-API reference and fail the build on breaking changes."
+author: "Bas Matthee <basmatthee@gmail.com>"
+inputs:
+  candidate_spec:
+    description: "Path to your OpenAPI YAML file (relative to workspace)"
+    required: true
+  version_tag:
+    description: "TOMP-API release tag (e.g., v1.6.1). Defaults to latest."
+    required: false
+  fail_on_breaking_changes:
+    description: "Fail if breaking changes are found"
+    required: false
+    default: "true"
+  fail_on_non_breaking_changes:
+    description: "Fail if non-breaking changes are found"
+    required: false
+    default: "false"
+  show_unclassified:
+    description: "Show unclassified changes"
+    required: false
+    default: "true"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Prepare working directory
+      run: |
+        export DIFFDIR="/tmp/openapi-diff"
+        echo "DIFFDIR=$DIFFDIR" >> "$GITHUB_ENV"
+        mkdir -p "$DIFFDIR"
+        cp "${{ github.workspace }}/${{ inputs.candidate_spec }}" "$DIFFDIR/openapi.yaml"
+      shell: bash
+
+    - name: Fetch TOMP-API reference spec
+      run: |
+        VERSION="${{ inputs.version_tag }}"
+        if [[ -z "$VERSION" ]]; then
+          VERSION=$(curl -s https://api.github.com/repos/TOMP-WG/TOMP-API/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        fi
+
+        echo "📦 Using TOMP-API version: $VERSION"
+        curl -fsSL "https://raw.githubusercontent.com/TOMP-WG/TOMP-API/$VERSION/TOMP-API.yaml" \
+          -o "/tmp/openapi-diff/TOMP-API-reference.yaml"
+
+        chmod a+r /tmp/openapi-diff/*.yaml
+      shell: bash
+
+    - name: Bundle specs with Redocly
+      run: |
+        npm install -g @redocly/cli
+        redocly bundle /tmp/openapi-diff/openapi.yaml -o /tmp/openapi-diff/openapi-bundled.yaml
+        redocly bundle /tmp/openapi-diff/TOMP-API-reference.yaml -o /tmp/openapi-diff/TOMP-API-reference-bundled.yaml
+      shell: bash
+
+    - name: Sanity check files inside container
+      run: |
+        docker run --rm -v /tmp/openapi-diff:/specs alpine sh -c "ls -lah /specs && head /specs/openapi-bundled.yaml"
+      shell: bash
+
+    - name: Run openapi-diff
+      run: |
+        docker run --rm \
+          -v /tmp/openapi-diff:/specs \
+          openapitools/openapi-diff:latest \
+          /specs/TOMP-API-reference-bundled.yaml /specs/openapi-bundled.yaml \
+          > /tmp/openapi-diff/diff_result.txt 2>&1 || echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+
+        echo "🧪 Diff Result:"
+        cat /tmp/openapi-diff/diff_result.txt
+      shell: bash
+
+    - name: Fail on configured diff results
+      run: |
+        RESULT=$(cat /tmp/openapi-diff/diff_result.txt)
+        FAIL=false
+
+        if [[ "$RESULT" == *"BREAKING"* && "${{ inputs.fail_on_breaking_changes }}" == "true" ]]; then
+          echo "❌ Breaking changes detected!"
+          FAIL=true
+        fi
+
+        if [[ "$RESULT" == *"NON_BREAKING"* && "${{ inputs.fail_on_non_breaking_changes }}" == "true" ]]; then
+          echo "⚠️ Non-breaking changes present!"
+          FAIL=true
+        fi
+
+        if [[ "$RESULT" == *"UNCLASSIFIED"* && "${{ inputs.show_unclassified }}" == "true" ]]; then
+          echo "❓ Unclassified changes detected:"
+          echo "$RESULT" | grep UNCLASSIFIED
+        fi
+
+        if [[ "$FAIL" == "true" ]]; then
+          echo "💥 Spec comparison failed based on your config."
+          exit 1
+        else
+          echo "✅ Spec comparison passed."
+        fi
+      shell: bash
