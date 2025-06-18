@@ -46,10 +46,10 @@ if [[ ! -f "$CANDIDATE_FILE" ]]; then
 fi
 
 echo 'Candidate file:'
-cat $CANDIDATE_FILE
+echo  $CANDIDATE_FILE
 
 echo 'Reference file:'
-cat $REF_FILE
+echo  $REF_FILE
 
 pwd
 
