@@ -45,19 +45,15 @@ if [[ ! -f "$CANDIDATE_FILE" ]]; then
   exit 1
 fi
 
-echo 'Candidate file:'
-echo  $CANDIDATE_FILE
-
-echo 'Reference file:'
-echo  $REF_FILE
-
-pwd
-
-echo "Validating..."
-
 # === RUN OPENAPI-DIFF ===
+REF_IN_CONTAINER="/spec/$(realpath --relative-to="$PWD" "$REF_FILE")"
+CANDIDATE_IN_CONTAINER="/spec/$(realpath --relative-to="$PWD" "$CANDIDATE_FILE")"
+
+echo "📄 Container REF: $REF_IN_CONTAINER"
+echo "📄 Container CANDIDATE: $CANDIDATE_IN_CONTAINER"
+
 docker run --rm -v "${PWD}:/spec" openapitools/openapi-diff:latest \
-  /spec/$REF_FILE /spec/$CANDIDATE_FILE \
+  "$REF_IN_CONTAINER" "$CANDIDATE_IN_CONTAINER" \
   > diff_result.txt
 
 cat diff_result.txt
