@@ -54,16 +54,16 @@ chmod a+r "$REF_FILE"
 chmod a+r "$CANDIDATE_FILE"
 
 # Compute safe relative paths for Docker mount
-REF_IN_CONTAINER="/spec/$(realpath --relative-to="$PWD" "$REF_FILE")"
-CANDIDATE_IN_CONTAINER="/spec/$(realpath --relative-to="$PWD" "$CANDIDATE_FILE")"
+REF_IN_CONTAINER="/specs/$(realpath --relative-to="$PWD" "$REF_FILE")"
+CANDIDATE_IN_CONTAINER="/specs/$(realpath --relative-to="$PWD" "$CANDIDATE_FILE")"
 
 echo "📦 Running openapi-diff inside Docker..."
 echo "🔗 Host:       $PWD"
 echo "📄 Reference:  $REF_IN_CONTAINER"
 echo "📄 Candidate:  $CANDIDATE_IN_CONTAINER"
 
-docker run --rm -v "$PWD:/spec" openapitools/openapi-diff:latest \
-  "$REF_IN_CONTAINER" "$CANDIDATE_IN_CONTAINER" \
+docker run --rm -v "$PWD:/specs" openapitools/openapi-diff:latest \
+  "$REF_IN_CONTAINER" "$CANDIDATE_IN_CONTAINER" --debug --error --trace \
   > diff_result.txt
 
 cat diff_result.txt
