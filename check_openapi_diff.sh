@@ -45,6 +45,14 @@ if [[ ! -f "$CANDIDATE_FILE" ]]; then
   exit 1
 fi
 
+echo 'Candidate file:'
+cat $CANDIDATE_FILE
+
+echo 'Reference file:'
+cat $REF_FILE
+
+pwd
+
 echo "Validating..."
 
 # === RUN OPENAPI-DIFF ===
