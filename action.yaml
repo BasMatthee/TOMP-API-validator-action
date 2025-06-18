@@ -1,0 +1,36 @@
+name: "Validate OpenAPI spec against TOMP-API"
+description: "Compare a candidate OpenAPI spec against the TOMP-API reference and fail the build on breaking changes."
+author: "Bas Matthee <basmatthee@gmail.com>"
+inputs:
+  candidate_spec:
+    description: "Path to your OpenAPI YAML spec"
+    required: true
+  version_tag:
+    description: "TOMP-API release tag (e.g. v1.3.0). Defaults to latest."
+    required: false
+  fail_on_breaking_changes:
+    description: "Fail if breaking changes are detected"
+    required: false
+    default: "true"
+  fail_on_non_breaking_changes:
+    description: "Fail if non-breaking changes are detected"
+    required: false
+    default: "false"
+  show_unclassified:
+    description: "Show unclassified changes"
+    required: false
+    default: "true"
+runs:
+  using: "composite"
+  steps:
+    - run: chmod +x ${{ github.action_path }}/check_openapi_diff.sh
+      shell: bash
+    - run: |
+        CANDIDATE_SPEC="${{ inputs.candidate_spec }}" \
+        VERSION_TAG="${{ inputs.version_tag }}" \
+        FAIL_ON_BREAKING_CHANGES="${{ inputs.fail_on_breaking_changes }}" \
+        FAIL_ON_NON_BREAKING_CHANGES="${{ inputs.fail_on_non_breaking_changes }}" \
+        SHOW_UNCLASSIFIED="${{ inputs.show_unclassified }}" \
+        ${{ github.action_path }}/check_openapi_diff.sh
+      shell: bash
+
