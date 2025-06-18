@@ -46,13 +46,20 @@ if [[ ! -f "$CANDIDATE_FILE" ]]; then
 fi
 
 # === RUN OPENAPI-DIFF ===
-REF_IN_CONTAINER="spec/$(realpath --relative-to="$PWD" "$REF_FILE")"
-CANDIDATE_IN_CONTAINER="spec/$(realpath --relative-to="$PWD" "$CANDIDATE_FILE")"
+# Validate files exist
+[ ! -f "$REF_FILE" ] && echo "❌ Reference file missing: $REF_FILE" && exit 1
+[ ! -f "$CANDIDATE_FILE" ] && echo "❌ Candidate file missing: $CANDIDATE_FILE" && exit 1
 
-echo "📄 Container REF: $REF_IN_CONTAINER"
-echo "📄 Container CANDIDATE: $CANDIDATE_IN_CONTAINER"
+# Compute safe relative paths for Docker mount
+REF_IN_CONTAINER="/spec/$(realpath --relative-to="$PWD" "$REF_FILE")"
+CANDIDATE_IN_CONTAINER="/spec/$(realpath --relative-to="$PWD" "$CANDIDATE_FILE")"
 
-docker run --rm -v "${PWD}:/spec" openapitools/openapi-diff:latest \
+echo "📦 Running openapi-diff inside Docker..."
+echo "🔗 Host:       $PWD"
+echo "📄 Reference:  $REF_IN_CONTAINER"
+echo "📄 Candidate:  $CANDIDATE_IN_CONTAINER"
+
+docker run --rm -v "$PWD:/spec" openapitools/openapi-diff:latest \
   "$REF_IN_CONTAINER" "$CANDIDATE_IN_CONTAINER" \
   > diff_result.txt
 
