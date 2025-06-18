@@ -62,7 +62,7 @@ echo "🔗 Host:       $PWD"
 echo "📄 Reference:  $REF_IN_CONTAINER"
 echo "📄 Candidate:  $CANDIDATE_IN_CONTAINER"
 
-docker run --rm -t -v "$PWD:/specs" openapitools/openapi-diff:latest \
+docker run --rm -t -v "$PWD:/specs:ro" openapitools/openapi-diff:latest \
   "$REF_IN_CONTAINER" "$CANDIDATE_IN_CONTAINER" --debug --error --trace \
   > diff_result.txt
 
