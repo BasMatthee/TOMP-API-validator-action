@@ -46,8 +46,8 @@ if [[ ! -f "$CANDIDATE_FILE" ]]; then
 fi
 
 # === RUN OPENAPI-DIFF ===
-REF_IN_CONTAINER="/spec/$(realpath --relative-to="$PWD" "$REF_FILE")"
-CANDIDATE_IN_CONTAINER="/spec/$(realpath --relative-to="$PWD" "$CANDIDATE_FILE")"
+REF_IN_CONTAINER="spec/$(realpath --relative-to="$PWD" "$REF_FILE")"
+CANDIDATE_IN_CONTAINER="spec/$(realpath --relative-to="$PWD" "$CANDIDATE_FILE")"
 
 echo "📄 Container REF: $REF_IN_CONTAINER"
 echo "📄 Container CANDIDATE: $CANDIDATE_IN_CONTAINER"
