@@ -5,7 +5,7 @@ set -e
 # === CONFIGURATION ===
 REPO="TOMP-WG/TOMP-API"
 REF_SPEC_PATH_IN_REPO="TOMP-API.yaml"
-REF_FILE="open-api.yaml"
+REF_FILE="TOMP-API-reference.yaml"
 
 # You can override these via env vars or CLI args
 CANDIDATE_FILE="${CANDIDATE_SPEC:-candidate.yaml}"
@@ -44,6 +44,8 @@ if [[ ! -f "$CANDIDATE_FILE" ]]; then
   echo "❌ Candidate spec file '$CANDIDATE_FILE' not found!"
   exit 1
 fi
+
+echo "Validating..."
 
 # === RUN OPENAPI-DIFF ===
 docker run --rm -v "${PWD}:/spec" openapitools/openapi-diff:latest \
