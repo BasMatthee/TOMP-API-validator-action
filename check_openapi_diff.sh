@@ -50,6 +50,9 @@ fi
 [ ! -f "$REF_FILE" ] && echo "❌ Reference file missing: $REF_FILE" && exit 1
 [ ! -f "$CANDIDATE_FILE" ] && echo "❌ Candidate file missing: $CANDIDATE_FILE" && exit 1
 
+chmod a+r "$REF_FILE"
+chmod a+r "$CANDIDATE_FILE"
+
 # Compute safe relative paths for Docker mount
 REF_IN_CONTAINER="/spec/$(realpath --relative-to="$PWD" "$REF_FILE")"
 CANDIDATE_IN_CONTAINER="/spec/$(realpath --relative-to="$PWD" "$CANDIDATE_FILE")"
