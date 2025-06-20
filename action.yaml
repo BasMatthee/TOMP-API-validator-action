@@ -26,6 +26,7 @@ runs:
     - run: chmod +x ${{ github.action_path }}/check_openapi_diff.sh
       shell: bash
     - run: |
+        RUNNER_TEMP="${{ runner.temp }}" \
         CANDIDATE_SPEC="${{ inputs.candidate_spec }}" \
         VERSION_TAG="${{ inputs.version_tag }}" \
         FAIL_ON_BREAKING_CHANGES="${{ inputs.fail_on_breaking_changes }}" \

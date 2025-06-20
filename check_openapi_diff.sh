@@ -5,7 +5,8 @@ set -e
 # === CONFIGURATION ===
 REPO="TOMP-WG/TOMP-API"
 REF_SPEC_PATH_IN_REPO="TOMP-API.yaml"
-REF_FILE="TOMP-API-reference.yaml"
+WORKDIR="${RUNNER_TEMP:-$(pwd)}"
+REF_FILE="${WORKDIR}/TOMP-API-reference.yaml"
 
 # You can override these via env vars or CLI args
 CANDIDATE_FILE="${CANDIDATE_SPEC:-candidate.yaml}"
