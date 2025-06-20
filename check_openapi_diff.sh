@@ -11,7 +11,7 @@ echo $WORKDIR
 REF_FILE="${WORKDIR}/TOMP-API-reference.yaml"
 
 # You can override these via env vars or CLI args
-CANDIDATE_FILE="${CANDIDATE_SPEC:-candidate.yaml}"
+CANDIDATE_FILE="${WORKDIR}/${CANDIDATE_SPEC:-candidate.yaml}"
 VERSION="${VERSION_TAG:-$1}"
 
 FAIL_ON_BREAKING_CHANGES="${FAIL_ON_BREAKING_CHANGES:-true}"
