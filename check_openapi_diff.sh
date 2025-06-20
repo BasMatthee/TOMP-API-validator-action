@@ -116,7 +116,7 @@ echo "📄 Reference:  $REF_IN_CONTAINER"
 echo "📄 Candidate:  $CANDIDATE_IN_CONTAINER"
 
 # Run docker command and capture exit code
-if ! docker run --rm -v "$PWD:/specs:ro" openapitools/openapi-diff:latest \
+if ! docker run --rm -v "$PWD:/specs:z" openapitools/openapi-diff:latest \
   "$REF_IN_CONTAINER" "$CANDIDATE_IN_CONTAINER" --debug --error --trace \
   > diff_result.txt 2>&1; then
   echo "❌ Docker command failed with exit code $?"
