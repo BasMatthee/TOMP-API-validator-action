@@ -5,7 +5,9 @@ set -e
 # === CONFIGURATION ===
 REPO="TOMP-WG/TOMP-API"
 REF_SPEC_PATH_IN_REPO="TOMP-API.yaml"
+echo $RUNNER_TEMP
 WORKDIR="${RUNNER_TEMP:-$(pwd)}"
+echo $WORKDIR
 REF_FILE="${WORKDIR}/TOMP-API-reference.yaml"
 
 # You can override these via env vars or CLI args
@@ -95,13 +97,13 @@ REF_ABS=$(realpath "$REF_FILE" 2>/dev/null || echo "$REF_FILE")
 CANDIDATE_ABS=$(realpath "$CANDIDATE_FILE" 2>/dev/null || echo "$CANDIDATE_FILE")
 
 # Check if files are within current directory tree
-if [[ "$REF_ABS" != "$PWD"* ]]; then
+if [[ "$REF_ABS" != "$WORKDIR"* ]]; then
   echo "⚠️  Reference file is outside current directory, copying to temp location"
   cp "$REF_FILE" "./temp_ref.yaml"
   REF_FILE="./temp_ref.yaml"
 fi
 
-if [[ "$CANDIDATE_ABS" != "$PWD"* ]]; then
+if [[ "$CANDIDATE_ABS" != "$WORKDIR"* ]]; then
   echo "⚠️  Candidate file is outside current directory, copying to temp location"
   cp "$CANDIDATE_FILE" "./temp_candidate.yaml"
   CANDIDATE_FILE="./temp_candidate.yaml"
@@ -112,12 +114,12 @@ REF_IN_CONTAINER="/specs/$(basename "$REF_FILE")"
 CANDIDATE_IN_CONTAINER="/specs/$(basename "$CANDIDATE_FILE")"
 
 echo "📦 Running openapi-diff inside Docker..."
-echo "🔗 Host:       $PWD"
+echo "🔗 Host:       $WORKDIR"
 echo "📄 Reference:  $REF_IN_CONTAINER"
 echo "📄 Candidate:  $CANDIDATE_IN_CONTAINER"
 
 # Run docker command and capture exit code
-if ! docker run --rm -v "$PWD:/specs:z" openapitools/openapi-diff:latest \
+if ! docker run --rm -v "$WORKDIR:/specs:ro" openapitools/openapi-diff:latest \
   "$REF_IN_CONTAINER" "$CANDIDATE_IN_CONTAINER" --debug --error --trace \
   > diff_result.txt 2>&1; then
   echo "❌ Docker command failed with exit code $?"
