@@ -11,7 +11,7 @@ echo $WORKDIR
 REF_FILE="${WORKDIR}/TOMP-API-reference.yaml"
 
 # You can override these via env vars or CLI args
-CANDIDATE_FILE="${WORKDIR}/${CANDIDATE_SPEC:-candidate.yaml}"
+CANDIDATE_FILE="${CANDIDATE_SPEC:-candidate.yaml}"
 VERSION="${VERSION_TAG:-$1}"
 
 FAIL_ON_BREAKING_CHANGES="${FAIL_ON_BREAKING_CHANGES:-true}"
@@ -57,6 +57,8 @@ if [[ ! -f "$CANDIDATE_FILE" ]]; then
   exit 1
 fi
 
+cp $CANDIDATE_FILE ${WORKDIR}/$CANDIDATE_FILE
+
 # === VALIDATE FILES ===
 # Check file existence and readability
 if [ ! -f "$REF_FILE" ]; then
@@ -64,8 +66,8 @@ if [ ! -f "$REF_FILE" ]; then
   exit 1
 fi
 
-if [ ! -f "$CANDIDATE_FILE" ]; then
-  echo "❌ Candidate file missing: $CANDIDATE_FILE"
+if [ ! -f "$WORKDIR/$CANDIDATE_FILE" ]; then
+  echo "❌ Candidate file missing: $WORKDIR/$CANDIDATE_FILE"
   exit 1
 fi
 
@@ -74,8 +76,8 @@ if [ ! -r "$REF_FILE" ]; then
   exit 1
 fi
 
-if [ ! -r "$CANDIDATE_FILE" ]; then
-  echo "❌ Candidate file not readable: $CANDIDATE_FILE"
+if [ ! -r "$WORKDIR/$CANDIDATE_FILE" ]; then
+  echo "❌ Candidate file not readable: $WORKDIR/$CANDIDATE_FILE"
   exit 1
 fi
 
@@ -84,17 +86,17 @@ if ! head -n 10 "$REF_FILE" | grep -qE "(^openapi:|^swagger:|^---$|^[a-zA-Z]+:)"
   echo "⚠️  Warning: Reference file may not be valid YAML/OpenAPI format"
 fi
 
-if ! head -n 10 "$CANDIDATE_FILE" | grep -qE "(^openapi:|^swagger:|^---$|^[a-zA-Z]+:)"; then
+if ! head -n 10 "$WORKDIR/$CANDIDATE_FILE" | grep -qE "(^openapi:|^swagger:|^---$|^[a-zA-Z]+:)"; then
   echo "⚠️  Warning: Candidate file may not be valid YAML/OpenAPI format"
 fi
 
 chmod a+r "$REF_FILE"
-chmod a+r "$CANDIDATE_FILE"
+chmod a+r "$WORKDIR/$CANDIDATE_FILE"
 
 # Compute safe relative paths for Docker mount
 # Convert to absolute paths first, then make relative to PWD
 REF_ABS=$(realpath "$REF_FILE" 2>/dev/null || echo "$REF_FILE")
-CANDIDATE_ABS=$(realpath "$CANDIDATE_FILE" 2>/dev/null || echo "$CANDIDATE_FILE")
+CANDIDATE_ABS=$(realpath "$WORKDIR/$CANDIDATE_FILE" 2>/dev/null || echo "$WORKDIR/$CANDIDATE_FILE")
 
 # Check if files are within current directory tree
 if [[ "$REF_ABS" != "$WORKDIR"* ]]; then
@@ -103,15 +105,15 @@ if [[ "$REF_ABS" != "$WORKDIR"* ]]; then
   REF_FILE="./temp_ref.yaml"
 fi
 
-if [[ "$CANDIDATE_ABS" != "$WORKDIR"* ]]; then
-  echo "⚠️  Candidate file is outside current directory, copying to temp location"
-  cp "$CANDIDATE_FILE" "./temp_candidate.yaml"
-  CANDIDATE_FILE="./temp_candidate.yaml"
-fi
+# if [[ "$CANDIDATE_ABS" != "$WORKDIR"* ]]; then
+#   echo "⚠️  Candidate file is outside current directory, copying to temp location"
+#   cp "$CANDIDATE_FILE" "./temp_candidate.yaml"
+#   CANDIDATE_FILE="./temp_candidate.yaml"
+# fi
 
 # Now compute container paths
 REF_IN_CONTAINER="/specs/$(basename "$REF_FILE")"
-CANDIDATE_IN_CONTAINER="/specs/$(basename "$CANDIDATE_FILE")"
+CANDIDATE_IN_CONTAINER="/specs/$(basename "$WORKDIR/$CANDIDATE_FILE")"
 
 echo "📦 Running openapi-diff inside Docker..."
 echo "🔗 Host:       $WORKDIR"
