@@ -75,12 +75,12 @@ runs:
         RESULT=$(cat /tmp/openapi-diff/diff_result.txt)
         FAIL=false
 
-        if [[ "$RESULT" == *"BREAKING"* && "${{ inputs.fail_on_breaking_changes }}" == "true" ]]; then
+        if [[ "$RESULT" == *"API changes broke backward compatibility"* && "${{ inputs.fail_on_breaking_changes }}" == "true" ]]; then
           echo "❌ Breaking changes detected!"
           FAIL=true
         fi
 
-        if [[ "$RESULT" == *"NON_BREAKING"* && "${{ inputs.fail_on_non_breaking_changes }}" == "true" ]]; then
+        if [[ "$RESULT" == *"API changes are backward compatible"* && "${{ inputs.fail_on_non_breaking_changes }}" == "true" ]]; then
           echo "⚠️ Non-breaking changes present!"
           FAIL=true
         fi
