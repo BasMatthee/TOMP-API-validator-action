@@ -49,13 +49,8 @@ runs:
     - name: Bundle specs with Redocly
       run: |
         npm install --no-fund --no-audit --loglevel=error -g @redocly/cli 
-        redocly bundle /tmp/openapi-diff/openapi.yaml -o /tmp/openapi-diff/openapi-bundled.yaml
-        redocly bundle /tmp/openapi-diff/TOMP-API-reference.yaml -o /tmp/openapi-diff/TOMP-API-reference-bundled.yaml
-      shell: bash
-
-    - name: Sanity check files inside container
-      run: |
-        docker run --rm -v /tmp/openapi-diff:/specs alpine sh -c "ls -lah /specs && head /specs/openapi-bundled.yaml"
+        redocly bundle /tmp/openapi-diff/openapi.yaml -o /tmp/openapi-diff/openapi-bundled.yaml > /dev/null
+        redocly bundle /tmp/openapi-diff/TOMP-API-reference.yaml -o /tmp/openapi-diff/TOMP-API-reference-bundled.yaml > /dev/null
       shell: bash
 
     - name: Run openapi-diff
