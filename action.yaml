@@ -60,11 +60,16 @@ runs:
 
     - name: Run openapi-diff
       run: |
+        echo "🧪 Running openapi-diff..."
+
+        docker_output=$(mktemp)
         docker run --rm \
           -v /tmp/openapi-diff:/specs \
           openapitools/openapi-diff:latest \
           /specs/TOMP-API-reference-bundled.yaml /specs/openapi-bundled.yaml \
-          > /tmp/openapi-diff/diff_result.txt 2>&1 || echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          > /tmp/openapi-diff/diff_result.txt 2>"$docker_output" || {
+            echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          }
 
         echo "🧪 Diff Result:"
         cat /tmp/openapi-diff/diff_result.txt
